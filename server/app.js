@@ -70,9 +70,6 @@ function handler(req, res){
     if(flg===false && reList.test(req.url)) {
         flg=true;
         switch(req.method) {
-            case 'GET':
-                sendHtmlList(req, res);
-                break;
             case 'POST':
                 postHtmlItem(req, res);
                 break;
@@ -148,6 +145,7 @@ function postHtmlItem(req, res) {
 
     req.on('end', function() {
         try {
+            querystring.parse(body)
             item = messages('add', querystring.parse(body)).item;
             res.writeHead(303,'See Other', {'Location' : root+'/messages/'+item.id});
             res.end();
@@ -275,20 +273,19 @@ function postAPIItem(req, res) {
     req.on('end', function() {
         try {
             // trans data to json input
-            body = body.replace('{', '').replace('}', '').split(',')
-            var wangyu = ''
-            for(i=0; i<body.length; i++){
-                body[i] = body[i].split(':')
-                body[i] = "\"" + body[i][0] + "\"" + ":\"" + body[i][1] + "\""
-                wangyu = wangyu + body[i]
-                if (i != body.length - 1){
-                    wangyu = wangyu + ","
-                }
-            }
-            wangyu = "{" + wangyu + "}"
-
-            msg = JSON.parse(wangyu);
-            item = messages('add', {message:msg.template.data[0].value}).item;
+            // body = body.replace('{', '').replace('}', '').split(',')
+            // var wangyu = ''
+            // for(i=0; i<body.length; i++){
+            //     body[i] = body[i].split(':')
+            //     body[i] = "\"" + body[i][0] + "\"" + ":\"" + body[i][1] + "\""
+            //     wangyu = wangyu + body[i]
+            //     if (i != body.length - 1){
+            //         wangyu = wangyu + ","
+            //     }
+            // }
+            // wangyu = "{" + wangyu + "}"
+            msg = eval('('+body+')');
+            item = messages('add', msg.template.data).item;
             res.writeHead(201, 'Created', {'Location' : root + '/api/' + item.id});
             res.end();
         }

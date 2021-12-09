@@ -8,18 +8,18 @@
     </head>
 
     <body>
-        <div>
+        <div align="center">
             <h2> 个人信息采集 </h2>
             <p> 请在下方框内输入相应信息</p>
             
 
-            <form action="{@host}/messages" method="post">
-                姓名：<input type="text" name="name" value="" required="true" maxlength="8"/><br>
-                学号：<input type="text" name="stuid" value="" required="true" maxlength="13"/><br>
-                电话：<input type="text" name="tel" value="" required="true" maxlength="11"/><br>
-                邮箱：<input type="text" name="mail" value="" required="true" maxlength="100"/><br>
-                兴趣：<input type="text" name="interest" value="" required="true" maxlength="32"/><br>
-                <input type="submit" class="btn" style="margin-left: 110px;margin-top: 20px;"/>
+            <form action="{@host}/messages" id="myForm" method="post">
+                姓名：<input type="text" id="name" name="name" value="" required="true" maxlength="8" oninput="verify(name)"/> <span id="name_bar" style="font-size: 16pt;"></span><br>
+                学号：<input type="text" id="stuid" name="stuid" value="" required="true" maxlength="13" oninput="verify(stuid)"/>            <span id="stuid_bar" style="font-size: 16pt;"></span><br>
+                电话：<input type="text" id="tel" name="tel" value="" required="true" maxlength="11" oninput="verify(tel)"/>                  <span id="tel_bar" style="font-size: 16pt;"></span><br>
+                邮箱：<input type="text" id="mail" name="mail" value="" required="true" maxlength="100" oninput="verify(mail)"/>              <span id="mail_bar" style="font-size: 16pt;"></span><br>
+                兴趣：<input type="text" id="interest" name="interest" value="" required="true" maxlength="32" oninput="verify(interest)"/>   <span id="interest_bar" style="font-size: 16pt;"></span><br>
+                <input type="button" value="提交" class="btn" style="margin-top: 20px;" onclick="OnClick()"/>
             </form>
         </div>
     </body>
