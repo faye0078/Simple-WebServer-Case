@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <!-- optional styling to this site -->
+        <link rel="shortcut icon" href="web.ico" type="image/x-icon">
+        <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet"/>
+    </head>
+
+    <body>
+        <div>
+            <h2> 个人信息采集 </h2>
+            <p> 请在下方框内输入相应信息</p>
+            
+
+            <form action="{@host}/messages" method="post">
+                姓名：<input type="text" name="name" value="" required="true" maxlength="8"/><br>
+                学号：<input type="text" name="stuid" value="" required="true" maxlength="13"/><br>
+                电话：<input type="text" name="tel" value="" required="true" maxlength="11"/><br>
+                邮箱：<input type="text" name="mail" value="" required="true" maxlength="100"/><br>
+                兴趣：<input type="text" name="interest" value="" required="true" maxlength="32"/><br>
+                <input type="submit" class="btn" style="margin-left: 110px;margin-top: 20px;"/>
+            </form>
+
+            <p class="links">
+                <a href="about">About</a>
+                <a href="messages">Messages</a>
+            </p>
+        </div>
+    </body>
+
+    <!-- optional enhancement -->
+    <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js"></script>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="script.js"></script>
+</html>
