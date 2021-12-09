@@ -12,9 +12,28 @@ var reItem = new RegExp('^\/messages\/.*','i');
 var reScript = new RegExp('^\/script.js$','i');
 var reList = new RegExp('^\/messages$','i')
 
+// setup for  API requests
+var cjHeaders = {
+    'Content-type' : 'application/json; charset=utf-8' //vnd.collection+json'
+};
+var reAPIList = new RegExp('^\/api\/$', 'i');
+var reAPIItem = new RegExp('^\/api\/.*', 'i');
+
+
 function handler(req, res){
     root = 'http://' + req.headers.host
+
+    var parts, segments, flg;
     flg = false
+
+    parts = [];
+    segments = req.url.split('/');
+    for(i=0, x=segments.length; i<x; i++) {
+        if(segments[i]!=='') {
+            parts.push(segments[i]);
+        }
+    }
+
     //home
     if(reHome.test(req.url)){
         flg = true
@@ -23,6 +42,16 @@ function handler(req, res){
         }
         else{
             sendHtmlError(req, res, 'Method Not Allowed', 405)
+        }
+    }
+
+    if(flg===false && reItem.test(req.url)) {
+        flg=true;
+        if(req.method==='GET') {
+            sendHtmlItem(req, res, parts[1]);
+        }
+        else {
+            sendHtmlError(req, res, 'Method Not Allowed', 405);
         }
     }
 
@@ -53,6 +82,46 @@ function handler(req, res){
         }
     }
 
+    // API List
+    if(flg===false && reAPIList.test(req.url)) {
+        flg=true;
+        switch(req.method) {
+            case 'GET':
+                sendAPIList(req, res);
+                break;
+            case 'POST':
+                postAPIItem(req, res);
+                break;
+            default:
+                sendAPIError(req, res, 'Method Not Allowed', 405);
+                break;
+        }
+    }
+    
+    // API Item
+    if(flg===false && reAPIItem.test(req.url)) {
+        flg=true;
+        switch(req.method) {
+            case 'GET':
+                sendAPIItem(req, res, parts[1]);
+                break;
+            case 'PUT':
+                updateAPIItem(req, res, parts[1]);
+                break;
+            case 'DELETE':
+                removeAPIItem(req, res, parts[1]);
+                break;
+            default:
+                sendAPIError(req, res, 'Method Not Allowed', 405);
+                break;
+        }
+    }
+    
+    // not found
+    if(flg===false) {
+        sendHtmlError(req, res, 'Page Not Found', 404);
+    }
+
 }
 
 function sendHtmlHome(req, res) {
@@ -68,15 +137,6 @@ function sendHtmlHome(req, res) {
     }
 }
 
-if(flg===false && reItem.test(req.url)) {
-    flg=true;
-    if(req.method==='GET') {
-        sendHtmlItem(req, res, parts[1]);
-    }
-    else {
-        sendHtmlError(req, res, 'Method Not Allowed', 405);
-    }
-}
 
 function postHtmlItem(req, res) {
     var body, item, rtn, lmDate;
@@ -113,8 +173,176 @@ function sendScript(req, res) {
   
 }
 
+function sendHtmlItem(req, res, id) {
+    var t, rtn, item, lmDate;
 
+    try {
+        rtn = messages('item', id);
+        item = rtn.item;
+        //lmDate = rtn.lastDate;
+        t = templates('item.html');
+        t = t.replace(/{@host}/g, root);
+        t = t.replace(/{@msg}/g, formatHtmlItem(item));
+        sendHtmlResponse(req, res, t, 200);
+    }
+    catch (ex) {
+        sendHtmlError(req, res, 'Server Error', 500);
+    }
+}
 
+function sendAPIItem(req, res, id) {
+    var t, rtn, item, lmDate;
+
+    try {
+        rtn = messages('item', id);
+        item = rtn.item;
+        //lmDate = rtn.lastDate;
+
+        t = templates('collection.js');
+        t = t.replace(/{@host}/g, root);
+        t = t.replace(/{@list}/g, formatAPIItem(item));
+        
+        sendAPIResponse(req, res, t, 200);
+    }
+    catch(ex) {
+        sendAPIError(req, res, 'Server Error', 500);
+    }
+}
+
+function sendAPIList(req, res) {
+    var t, rtn, list, lmDate;
+
+    try {
+        rtn = messages('list');
+        list = rtn.list;
+        //lmDate = rtn.lastDate;
+        
+        t = templates('collection.js');
+        t = t.replace(/{@host}/g, root);
+        t = t.replace(/{@list}/g, formatAPIList(list));
+        
+        // sendAPIResponse(req, res, t, 200, new Date(lmDate).toGMTString());
+        sendAPIResponse(req, res, t, 200);
+    }
+    catch (ex) {
+        sendAPIError(req, res, 'Server Error', 500);
+    }
+}
+function updateAPIItem(req, res, id) {
+    var body, item, msg;
+
+    body = '';
+    req.on('data', function(chunk) {
+        body += chunk;
+    });
+
+    req.on('end', function() {
+        try {
+            msg = JSON.parse(body);
+            item = messages('update', id, {message:msg.template.data[0].value}).item;
+            sendAPIItem(req, res, id);
+        }
+        catch(ex) {
+            sendAPIError(req, res, 'Server Error', 500);
+        }
+    });
+}
+
+function removeAPIItem(req, res, id) {
+    var t;
+
+    try {
+        messages('remove', id);
+        t = templates('collection.js');
+        t = t.replace(/{@host}/g, root);
+        t = t.replace(/{@list}/g, formatAPIList(messages('list')));
+        res.writeHead(204, 'No Content', cjHeaders);
+        res.end();
+    }
+    catch(ex) {
+        sendAPIError(req, res, 'Server Error', 500);
+    }
+}
+
+function postAPIItem(req, res) {
+    var body, item, msg;
+
+    body = '';
+    req.on('data', function(chunk) {
+        body += chunk;
+    });
+
+    req.on('end', function() {
+        try {
+            // trans data to json input
+            body = body.replace('{', '').replace('}', '').split(',')
+            var wangyu = ''
+            for(i=0; i<body.length; i++){
+                body[i] = body[i].split(':')
+                body[i] = "\"" + body[i][0] + "\"" + ":\"" + body[i][1] + "\""
+                wangyu = wangyu + body[i]
+                if (i != body.length - 1){
+                    wangyu = wangyu + ","
+                }
+            }
+            wangyu = "{" + wangyu + "}"
+
+            msg = JSON.parse(wangyu);
+            item = messages('add', {message:msg.template.data[0].value}).item;
+            res.writeHead(201, 'Created', {'Location' : root + '/api/' + item.id});
+            res.end();
+        }
+        catch(ex) {
+            sendAPIError(req, res, 'Server Error', 500);
+        }
+    });
+}
+
+function formatAPIList(list) {
+    var i, x, rtn, item;
+
+    rtn = [];
+    for(i=0,x=list.length; i<x; i++) {
+        item = {};
+        item.href = root + '/api/' + list[i].id;
+        item.data = [];
+        item.data.push({name:"date", value:list[i].date});
+        item.data.push({name:"id", value:list[i].id});
+        item.data.push({name:"name", value:list[i].name});
+        item.data.push({name:"stuid", value:list[i].stuid});
+        item.data.push({name:"tel", value:list[i].tel});
+        item.data.push({name:"mail", value:list[i].mail});
+        item.data.push({name:"interest", value:list[i].interest});
+        rtn.push(item);
+    }
+
+    return JSON.stringify(rtn, null, 4);
+}
+
+function formatAPIItem(item) {
+    var rtn = {};
+
+    rtn.href = root + '/api/' + item.id;
+    rtn.data = [];
+    item.data.push({name:"date", value:list[i].date});
+    item.data.push({name:"id", value:list[i].id});
+    item.data.push({name:"name", value:list[i].name});
+    item.data.push({name:"stuid", value:list[i].stuid});
+    item.data.push({name:"tel", value:list[i].tel});
+    item.data.push({name:"mail", value:list[i].mail});
+    item.data.push({name:"interest", value:list[i].interest});
+
+    return "[" + JSON.stringify(rtn, null, 4) + "]";
+}
+
+function sendAPIResponse(req, res, body, code, lmDate) {
+    res.writeHead(code, 
+        {"Content-Type" : "application/json; charset=utf-8", 
+        "ETag" : generateETag(body),
+        // "Last-Modified" : lmDate});
+    });
+    res.end(body);
+}
 
 function sendHtmlResponse(req, res, body, code, lmDate) {
     res.writeHead(code, 
@@ -128,6 +356,38 @@ function sendHtmlResponse(req, res, body, code, lmDate) {
 function sendHtmlError(req, res, title, code) {
     var body = '<h1>' + title + '<h1>';
     sendHtmlResponse(req, res, body, code);
+}
+
+function sendAPIError(req, res, title, code) {
+    var err, t;
+
+    err = {collection : {
+                version : "1.0", href : "{@host}/api/",
+                error : {title : title, code : code}
+            }
+        };
+
+    t = JSON.stringify(err);
+    t = t.replace(/{@host}/g, root);
+    res.writeHead(code, 'Server Error', cjHeaders);
+    res.end(t)
+}
+
+
+function formatHtmlItem(item) {
+    var rtn;
+
+    rtn = '<dl>\n';
+    rtn += '<dt>ID</dt><dd>'+item.id+'</dd>\n';
+    rtn += '<dt>DATE</dt><dd>'+item.date+'</dd>\n';
+    rtn += '<dt>NAME</dt><dd>'+item.name+'</dd>';
+    rtn += '<dt>STUID</dt><dd>'+item.stuid+'</dd>';
+    rtn += '<dt>TEL</dt><dd>'+item.tel+'</dd>';
+    rtn += '<dt>MAIL</dt><dd>'+item.mail+'</dd>';
+    rtn += '<dt>INTEREST</dt><dd>'+item.interest+'</dd>';
+    rtn += '</dl>\n';
+
+    return rtn;
 }
 
 function generateETag(data) {
