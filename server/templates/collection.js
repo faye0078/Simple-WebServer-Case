@@ -10,11 +10,11 @@
 
         "template" : {
             "data" : [
-                {"prompt" : "User name", "name" : "name", "value" : ""},
-                {"prompt" : "User student id", "name" : "stuid", "value" : ""},
-                {"prompt" : "User tel", "name" : "tel", "value" : ""},
-                {"prompt" : "User e-mail", "name" : "mail", "value" : ""},
-                {"prompt" : "User interest", "name" : "interest", "value" : ""},
+                {"name" : "name", "value" : ""},
+                {"name" : "stuid", "value" : ""},
+                {"name" : "tel", "value" : ""},
+                {"name" : "mail", "value" : ""},
+                {"name" : "interest", "value" : ""},
             ]
         }
     }

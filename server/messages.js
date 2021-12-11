@@ -22,6 +22,9 @@ function main(action, arg1, arg2) {
         case 'add':
             rtn = addItem(arg1);
             break;
+        case 'APIadd':
+            rtn = APIaddItem(arg1);
+            break;
         case 'update':
             rtn = updateItem(arg1, arg2);
             break;
@@ -76,11 +79,29 @@ function addItem(item) {
     return getItem(item.id);
 }
 
+function APIaddItem(item) {
+    api_item = {};
+    api_item.name = item[0].value;
+    api_item.stuid = item[1].value;
+    api_item.tel = item[2].value;
+    api_item.mail = item[3].value;
+    api_item.interest = item[4].value;
+    api_item.id = makeId();
+    api_item.date = new Date();
+    
+    fs.writeFileSync(folder+api_item.id, JSON.stringify(api_item));
+    return getItem(api_item.id);
+}
+
 function updateItem(id, item) {
     var current;
 
-    current = getItem(id);
-    current.message = item.message;
+    current = getItem(id).item;
+    current.name = item[0].value;
+    current.stuid = item[1].value;
+    current.tel = item[2].value;
+    current.mail = item[3].value;
+    current.interest = item[4].value;
     current.date = new Date();
     fs.writeFileSync(folder+id, JSON.stringify(current));
     return getItem(id);
@@ -100,4 +121,3 @@ function makeId() {
     return rtn;
 }
 /* eof */
-

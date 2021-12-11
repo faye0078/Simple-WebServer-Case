@@ -236,8 +236,8 @@ function updateAPIItem(req, res, id) {
 
     req.on('end', function() {
         try {
-            msg = JSON.parse(body);
-            item = messages('update', id, {message:msg.template.data[0].value}).item;
+            msg = eval('('+body+')');
+            item = messages('update', id, msg.template.data).item;
             sendAPIItem(req, res, id);
         }
         catch(ex) {
@@ -285,7 +285,7 @@ function postAPIItem(req, res) {
             // }
             // wangyu = "{" + wangyu + "}"
             msg = eval('('+body+')');
-            item = messages('add', msg.template.data).item;
+            item = messages('APIadd', msg.template.data).item;
             res.writeHead(201, 'Created', {'Location' : root + '/api/' + item.id});
             res.end();
         }
@@ -321,13 +321,14 @@ function formatAPIItem(item) {
 
     rtn.href = root + '/api/' + item.id;
     rtn.data = [];
-    item.data.push({name:"date", value:list[i].date});
-    item.data.push({name:"id", value:list[i].id});
-    item.data.push({name:"name", value:list[i].name});
-    item.data.push({name:"stuid", value:list[i].stuid});
-    item.data.push({name:"tel", value:list[i].tel});
-    item.data.push({name:"mail", value:list[i].mail});
-    item.data.push({name:"interest", value:list[i].interest});
+    rtn.data.push({name:"data", value:item.data});
+    rtn.data.push({name:"id", value:item.id});
+    rtn.data.push({name:"name", value:item.name});
+    rtn.data.push({name:"stuid", value:item.stuid});
+    rtn.data.push({name:"tel", value:item.tel});
+    rtn.data.push({name:"mail", value:item.mail});
+    rtn.data.push({name:"interest", value:item.interest});
+    
 
     return "[" + JSON.stringify(rtn, null, 4) + "]";
 }

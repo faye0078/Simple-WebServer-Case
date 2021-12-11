@@ -1,11 +1,11 @@
 {
     "template" : {
-      "data" :   {
-        "name" : "wangyudd",
-        "stuid" : "2019302130055",
-        "tel" : "13503838907",
-        "mail" : "2668714636@qq.com",
-        "interets" : "game"
-      }
+      "data" : [
+        {"name" : "name", "value" : "wangyudd"},
+        {"name" : "stuid", "value" : "2019302130055"},
+        {"name" : "tel", "value" : "13503838907"},
+        {"name" : "mail", "value" : "2668714636@qq.com"},
+        {"name" : "interest", "value" : "game"}
+    ]
     }
 }
